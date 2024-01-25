@@ -83,7 +83,7 @@ class ConvBlockDis(nn.Module):
     
 class Discriminator(nn.Module):
     def __init__(self, img_ch=3, num_hid_channels=64):
-        super(Generator, self).__init__()
+        super(Discriminator, self).__init__()
         
         self.result = nn.Sequential(
             ConvBlockDis(img_ch, num_hid_channels, kernel_size=4, stride=2, padding=1),
