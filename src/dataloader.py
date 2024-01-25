@@ -43,7 +43,7 @@ class Source2TargetDataset(Dataset):
 def get_loaders(source_path, target_path, img_size, stats, batch_size, val_size):
     transform = t.Compose([t.Resize(img_size), 
                            t.CenterCrop(img_size), 
-                           t.RandomHorizontalFlip(p=0.5),
+                           #t.RandomHorizontalFlip(p=0.5),
                            t.ToTensor(),
                            t.Normalize(*stats)])
     

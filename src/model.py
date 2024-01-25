@@ -95,8 +95,4 @@ class Discriminator(nn.Module):
         )
         
     def forward(self, x):
-        return self.result(x)
-        
-        
-        
-        
+        return self.result(x)    
