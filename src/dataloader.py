@@ -40,7 +40,7 @@ class Source2TargetDataset(Dataset):
             
         return src_img, trg_img
 
-def get_loaders(source_path, target_path, img_size, stats, batch_size, val_size):
+def get_loader(source_path, target_path, img_size, stats, batch_size):
     transform = t.Compose([t.Resize(img_size), 
                            t.CenterCrop(img_size), 
                            #t.RandomHorizontalFlip(p=0.5),
@@ -52,12 +52,6 @@ def get_loaders(source_path, target_path, img_size, stats, batch_size, val_size)
                                    target_path=target_path, 
                                    transform=transform)
     
+    loader = DataLoader(dataset, batch_size, shuffle=True, num_workers=2)
     
-    val_size = int(len(dataset) * val_size)
-    train_size = len(dataset) - val_size
-    train_set, val_set = torch.utils.data.random_split(dataset, [train_size, val_size])
-    
-    train_loader = DataLoader(train_set, batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_set, batch_size, shuffle=True, num_workers=2)
-    
-    return train_loader, val_loader
+    return loader
