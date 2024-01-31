@@ -54,3 +54,5 @@ def load_checkpoint(chekpoints_path, device, gen_trg=None, gen_src=None,
         opt_dis.param_groups[0]["lr"] = chekpoint['lr_opt_dis']
     if lr_opt_gen:
         opt_gen.param_groups[0]["lr"] = chekpoint['lr_opt_gen']
+    
+    return chekpoint['epoch']
