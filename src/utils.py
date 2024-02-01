@@ -18,6 +18,7 @@ def show_images(img_tensors):
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.set_xticks([]); ax.set_yticks([])
     ax.imshow(img_tensors.permute(1, 2, 0))
+    plt.show()
     
 def save_checkpoint(gen_trg, gen_src, dis_trg, dis_src,
                     opt_dis, opt_gen, chekpoints_path, epoch):
