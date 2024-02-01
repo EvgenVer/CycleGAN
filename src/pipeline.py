@@ -127,6 +127,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         writer.add_image('Target_image', trg_img, epoch)
         writer.add_image('Source_image', src_img, epoch)
         
+        clear_output(wait=True)
+        
         utils.show_images(trg_img)
         utils.show_images(src_img)
         
