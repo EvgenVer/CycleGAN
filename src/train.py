@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 def train_epoch(gen_trg, gen_src, dis_trg, dis_src, 
                 loader, opt_gen, opt_dis, l1, mse, 
                 dis_scal, gen_scal, lambda_cycle, device,
-                sheduler_dis, sheduler_gen):
+                scheduler_dis, scheduler_gen):
     loss_dis_ep = []
     loss_gen_ep = []
     real_score_ep = []
@@ -67,8 +67,8 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         gen_scal.update()
         loss_gen_ep.append(gen_loss.item())
         
-    sheduler_dis.step()
-    sheduler_gen.step()
+    scheduler_dis.step()
+    scheduler_gen.step()
        
     gen_src.eval()
     gen_trg.eval()
