@@ -12,7 +12,7 @@ DATASET:
     - - 0.5
       - 0.5
       - 0.5
-  BATCH_SIZE: 8
+  BATCH_SIZE: 16
 
 TRAINING:
   NUM_EPOCHS: 70
