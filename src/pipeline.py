@@ -150,7 +150,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         loss_dis.append(loss_dis_ep)
         loss_gen.append(loss_gen_ep)
         real_score.append(real_score_ep)
-        fake_score.append(fake_score)
+        fake_score.append(fake_score_ep)
         
         clear_output(wait=True)
         
