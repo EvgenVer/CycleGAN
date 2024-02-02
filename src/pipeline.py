@@ -1,3 +1,4 @@
+from collections import deque
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,7 +14,8 @@ import utils
 def train_pipeline(src_data_path, trg_data_path, experement_name, 
                    config_path='./config.yaml', device='cpu', scheduler='Linear', 
                    warm_lr=False, num_epoch=None, lr=None, img_size=None, 
-                   batch_size=None, save_path=None, load_path=None, save_period=1):
+                   batch_size=None, save_path=None, load_path=None, save_period=2,
+                   buffer_size=5):
     
     config = utils.load_config(config_path=config_path)
     
@@ -92,10 +94,26 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         
     writer = SummaryWriter(comment=experement_name)
     
+    buffer_trg = deque()
+    buffer_src = deque()
+    for _ in range(buffer_size):
+        src, trg = next(iter(loader))
+        src, trg = src.to(device), trg.to(device)
+        fake_trg = gen_trg(src)
+        fake_src = gen_src(trg)
+        buffer_trg.append(fake_trg)
+        buffer_src.append(fake_src)
+    
+    loss_dis = []
+    loss_gen = []
+    real_score = []
+    fake_score = []
+    
     for epoch in tqdm(range(NUM_EPOCHS), leave=True):
         (loss_dis_ep, loss_gen_ep,
          real_score_ep, fake_score_ep, 
-         val_trg_img, val_src_img) = train_epoch(gen_trg=gen_trg, 
+         val_trg_img, val_src_img, 
+         buffer_trg, buffer_src) = train_epoch(gen_trg=gen_trg, 
                                                  gen_src=gen_src, 
                                                  dis_trg=dis_trg, 
                                                  dis_src=dis_src, 
@@ -108,7 +126,9 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                                  lambda_cycle=LAMBDA_CYCLE, 
                                                  device=DEVICE, 
                                                  scheduler_dis=scheduler_dis, 
-                                                 scheduler_gen=scheduler_gen)
+                                                 scheduler_gen=scheduler_gen, 
+                                                 buffer_trg=buffer_trg, 
+                                                 buffer_src=buffer_src)
         
         if SAVE_MODEL and (((epoch+1) % save_period == 0) or (epoch+1) == NUM_EPOCHS):
             utils.save_checkpoint(gen_trg=gen_trg, gen_src=gen_src, 
@@ -127,10 +147,20 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         writer.add_image('Target_image', trg_img, epoch)
         writer.add_image('Source_image', src_img, epoch)
         
+        loss_dis.append(loss_dis_ep)
+        loss_gen.append(loss_gen_ep)
+        real_score.append(real_score_ep)
+        fake_score.append(fake_score)
+        
         clear_output(wait=True)
         
         utils.show_images(trg_img)
         utils.show_images(src_img)
+        
+        utils.plot_train_process(loss_gen=loss_gen, 
+                                 loss_dis=loss_dis, 
+                                 real_score=real_score, 
+                                 fake_score=fake_score)
         
         print(f'Epoch: {epoch+1}')
         print(f'Discriminator loss: {loss_dis_ep}')

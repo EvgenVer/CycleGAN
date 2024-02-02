@@ -20,6 +20,21 @@ def show_images(img_tensors):
     ax.imshow(img_tensors.permute(1, 2, 0))
     plt.show()
     
+def plot_train_process(loss_dis, loss_gen, real_score, fake_score):
+    fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+
+    axes[0].set_title('Loss')
+    axes[0].plot(loss_dis, label='discriminator')
+    axes[0].plot(loss_gen, label='generator')
+    axes[0].legend()
+
+    axes[1].set_title('Score')
+    axes[1].plot(real_score, label='Real score')
+    axes[1].plot(fake_score, label='Fake score')
+    axes[1].legend()
+    
+    plt.show()
+    
 def save_checkpoint(gen_trg, gen_src, dis_trg, dis_src,
                     opt_dis, opt_gen, chekpoints_path, epoch):
     path = f'{chekpoints_path}/models_{epoch}_epoch'

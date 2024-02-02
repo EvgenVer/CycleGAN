@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 def train_epoch(gen_trg, gen_src, dis_trg, dis_src, 
                 loader, opt_gen, opt_dis, l1, mse, 
                 dis_scal, gen_scal, lambda_cycle, device,
-                scheduler_dis, scheduler_gen):
+                scheduler_dis, scheduler_gen, buffer_trg, buffer_src):
     loss_dis_ep = []
     loss_gen_ep = []
     real_score_ep = []
@@ -22,8 +22,11 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         # Train discriminators
         with torch.cuda.amp.autocast():
             fake_trg = gen_trg(src)
+            buffer_trg.append(fake_trg.detach().cpu())
+            fake_history_trg = buffer_trg.popleft()
+            fake_history_trg.to(device)
             trg_real_pred = dis_trg(trg)
-            trg_fake_pred = dis_trg(fake_trg.detach())
+            trg_fake_pred = dis_trg(fake_history_trg.detach())
             real_score_ep.append(trg_real_pred.mean().item())
             fake_score_ep.append(trg_fake_pred.mean().item())
             dis_trg_real_loss = mse(trg_real_pred, torch.ones_like(trg_real_pred))
@@ -31,8 +34,11 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             dis_trg_loss = dis_trg_real_loss + dis_trg_fake_loss
             
             fake_src = gen_src(trg)
+            buffer_src.append(fake_src.detach().cpu())
+            fake_history_src = buffer_src.popleft()
+            fake_history_src.to(device)
             src_real_pred = dis_src(src)
-            src_fake_pred = dis_src(fake_src.detach())
+            src_fake_pred = dis_src(fake_history_src.detach())
             dis_src_real_loss = mse(src_real_pred, torch.ones_like(src_real_pred))
             dis_src_fake_loss = mse(src_fake_pred, torch.zeros_like(src_fake_pred))
             dis_src_loss = dis_src_real_loss + dis_src_fake_loss
@@ -79,4 +85,4 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         val_src_img = gen_src(val_trg).cpu().detach()
     
     return np.mean(loss_dis_ep), np.mean(loss_gen_ep), np.mean(real_score_ep), \
-           np.mean(fake_score_ep), val_trg_img, val_src_img
+           np.mean(fake_score_ep), val_trg_img, val_src_img, buffer_trg, buffer_src
