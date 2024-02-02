@@ -26,7 +26,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             fake_history_trg = buffer_trg.popleft()
             fake_history_trg.to(device)
             trg_real_pred = dis_trg(trg)
-            trg_fake_pred = dis_trg(fake_history_trg.detach())
+            trg_fake_pred = dis_trg(fake_history_trg)
             real_score_ep.append(trg_real_pred.mean().item())
             fake_score_ep.append(trg_fake_pred.mean().item())
             dis_trg_real_loss = mse(trg_real_pred, torch.ones_like(trg_real_pred))
@@ -38,7 +38,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             fake_history_src = buffer_src.popleft()
             fake_history_src.to(device)
             src_real_pred = dis_src(src)
-            src_fake_pred = dis_src(fake_history_src.detach())
+            src_fake_pred = dis_src(fake_history_src)
             dis_src_real_loss = mse(src_real_pred, torch.ones_like(src_real_pred))
             dis_src_fake_loss = mse(src_fake_pred, torch.zeros_like(src_fake_pred))
             dis_src_loss = dis_src_real_loss + dis_src_fake_loss
