@@ -101,8 +101,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         src, trg = src.to(device), trg.to(device)
         fake_trg = gen_trg(src)
         fake_src = gen_src(trg)
-        buffer_trg.append(fake_trg)
-        buffer_src.append(fake_src)
+        buffer_trg.append(fake_trg.detach().cpu())
+        buffer_src.append(fake_src.detach().cpu())
     
     loss_dis = []
     loss_gen = []
