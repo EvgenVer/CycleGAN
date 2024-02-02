@@ -22,7 +22,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         # Train discriminators
         with torch.cuda.amp.autocast():
             fake_trg = gen_trg(src)
-            buffer_trg.append(fake_trg.detach().cpu())
+            buffer_trg.append(fake_trg.detach())
             fake_history_trg = buffer_trg.popleft()
             fake_history_trg.to(device)
             trg_real_pred = dis_trg(trg)
@@ -34,7 +34,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             dis_trg_loss = dis_trg_real_loss + dis_trg_fake_loss
             
             fake_src = gen_src(trg)
-            buffer_src.append(fake_src.detach().cpu())
+            buffer_src.append(fake_src.detach())
             fake_history_src = buffer_src.popleft()
             fake_history_src.to(device)
             src_real_pred = dis_src(src)
