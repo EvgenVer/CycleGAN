@@ -1,4 +1,3 @@
-from collections import deque
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -94,15 +93,17 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         
     writer = SummaryWriter(comment=experement_name)
     
-    buffer_trg = deque()
-    buffer_src = deque()
-    for _ in range(buffer_size):
-        src, trg = next(iter(loader))
-        src, trg = src.to(device), trg.to(device)
-        fake_trg = gen_trg(src)
-        fake_src = gen_src(trg)
-        buffer_trg.append(fake_trg.detach())
-        buffer_src.append(fake_src.detach())
+    buffer_trg = []
+    buffer_src = []
+    
+    with torch.no_grad():
+        for _ in range(buffer_size):
+            src, trg = next(iter(loader))
+            src, trg = src.to(device), trg.to(device)
+            fake_trg = gen_trg(src)
+            fake_src = gen_src(trg)
+            buffer_trg.append(fake_trg.detach())
+            buffer_src.append(fake_src.detach())
     
     loss_dis = []
     loss_gen = []
