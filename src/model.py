@@ -17,7 +17,7 @@ class ConvBlockGen(nn.Module):
             )
         else:
             self.conv = nn.Sequential(
-                nn.ConvTranspose2d(input_ch, output_ch, padding_mode="reflect", **kwargs),
+                nn.ConvTranspose2d(input_ch, output_ch, **kwargs),
                 nn.InstanceNorm2d(output_ch),
                 nn.ReLU(inplace=True) if activation else nn.Identity()
             )
