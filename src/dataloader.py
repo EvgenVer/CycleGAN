@@ -43,7 +43,7 @@ def get_loader(source_path, target_path, img_size, stats, batch_size):
                            t.CenterCrop(img_size),
                            t.RandomHorizontalFlip(p=0.5), 
                            t.ToTensor(),
-                           t.Normalize(*stats, max_pixel_value=255)])
+                           t.Normalize(*stats)])
     
     
     dataset = Source2TargetDataset(source_path=source_path, 
