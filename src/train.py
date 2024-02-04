@@ -14,17 +14,20 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
     
     for idx, (src, trg) in enumerate(tqdm(loader, leave=False)):
         if idx == val_idx:
-            val_src = src
-            val_trg = trg
+            val_src = src.clone()
+            val_trg = trg.clone()
         src = src.to(device)
         trg = trg.to(device)
         
         # Train discriminators
         with torch.cuda.amp.autocast():
             fake_trg = gen_trg(src)
-            buffer_trg.append(fake_trg.detach())
-            trg_idx = np.random.randint(len(buffer_trg))
-            fake_history_trg = buffer_trg.pop(trg_idx)
+            if np.random.random() > 0.5:
+                buffer_trg.append(fake_trg.detach().clone())
+                trg_idx = np.random.randint(len(buffer_trg))
+                fake_history_trg = buffer_trg.pop(trg_idx)
+            else:
+                fake_history_trg = fake_trg.detach().clone()
             fake_history_trg.to(device)
             trg_real_pred = dis_trg(trg)
             trg_fake_pred = dis_trg(fake_history_trg)
@@ -35,9 +38,12 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             dis_trg_loss = dis_trg_real_loss + dis_trg_fake_loss
             
             fake_src = gen_src(trg)
-            buffer_src.append(fake_src.detach())
-            src_idx = np.random.randint(len(buffer_src))
-            fake_history_src = buffer_src.pop(src_idx)
+            if np.random.random() > 0.5:
+                buffer_src.append(fake_src.detach().clone())
+                src_idx = np.random.randint(len(buffer_src))
+                fake_history_src = buffer_src.pop(src_idx)
+            else:
+                fake_history_src = fake_src.detach().clone()
             fake_history_src.to(device)
             src_real_pred = dis_src(src)
             src_fake_pred = dis_src(fake_history_src)
@@ -59,15 +65,15 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             src_fake_pred = dis_src(fake_src)
             gen_trg_loss = mse(trg_fake_pred, torch.ones_like(trg_fake_pred))
             gen_src_loss = mse(src_fake_pred, torch.ones_like(src_fake_pred))
+            gen_adv_loss = (gen_trg_loss + gen_src_loss) / 2
             
             cycle_trg = gen_trg(fake_src)
             cycle_src = gen_src(fake_trg)
-            cycle_trg_loss = l1(trg, cycle_trg)
-            cycle_src_loss = l1(src, cycle_src)
+            cycle_trg_loss = l1(cycle_trg, trg)
+            cycle_src_loss = l1(cycle_src, src)
+            cycle_loss = (cycle_trg_loss + cycle_src_loss) / 2
             
-            gen_loss = (gen_trg_loss + gen_src_loss 
-                        + cycle_trg_loss * lambda_cycle
-                        + cycle_src_loss * lambda_cycle)
+            gen_loss = gen_adv_loss + lambda_cycle * cycle_loss
             
         opt_gen.zero_grad()
         gen_scal.scale(gen_loss).backward()

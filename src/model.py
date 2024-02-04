@@ -17,7 +17,7 @@ class ConvBlockGen(nn.Module):
             )
         else:
             self.conv = nn.Sequential(
-                nn.ConvTranspose2d(input_ch, output_ch, **kwargs),
+                nn.ConvTranspose2d(input_ch, output_ch, padding_mode="reflect", **kwargs),
                 nn.InstanceNorm2d(output_ch),
                 nn.ReLU(inplace=True) if activation else nn.Identity()
             )
@@ -58,14 +58,15 @@ class Generator(nn.Module):
                          kernel_size=3, stride=2, padding=1, output_padding=1),
             ConvBlockGen(num_hid_channels*2, num_hid_channels, downsampling=False,
                          kernel_size=3, stride=2, padding=1, output_padding=1),
-            ConvBlockGen(num_hid_channels, img_ch, kernel_size=7, stride=1, padding=3)
+            ConvBlockGen(num_hid_channels, img_ch, kernel_size=7, stride=1, padding=3),
+            nn.Tanh()
         )
     
     def forward(self, x):
         x = self.encoder(x)
         x = self.transform(x)
         x = self.decoder(x)
-        return torch.tanh(x)
+        return x
     
 class ConvBlockDis(nn.Module):
     
@@ -86,11 +87,12 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         
         self.result = nn.Sequential(
-            ConvBlockDis(img_ch, num_hid_channels, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(img_ch, num_hid_channels, kernel_size=4, stride=2, padding=1, padding_mode="reflect"),
+            nn.LeakyReLU(0.2, inplace=True),
             ConvBlockDis(num_hid_channels, num_hid_channels*2, kernel_size=4, stride=2, padding=1),
             ConvBlockDis(num_hid_channels*2, num_hid_channels*4, kernel_size=4, stride=2, padding=1),
-            ConvBlockDis(num_hid_channels*4, num_hid_channels*8, kernel_size=4, stride=2, padding=1),
-            nn.Conv2d(num_hid_channels*8, 1, kernel_size=3, stride=1, padding=1, padding_mode="reflect"),
+            ConvBlockDis(num_hid_channels*4, num_hid_channels*8, kernel_size=4, stride=1, padding=1),
+            nn.Conv2d(num_hid_channels*8, 1, kernel_size=4, stride=1, padding=1, padding_mode="reflect"),
             nn.Sigmoid()
         )
         

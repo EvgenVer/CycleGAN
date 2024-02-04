@@ -40,15 +40,16 @@ class Source2TargetDataset(Dataset):
 
 def get_loader(source_path, target_path, img_size, stats, batch_size):
     transform = t.Compose([t.Resize(img_size), 
-                           t.CenterCrop(img_size), 
+                           t.CenterCrop(img_size),
+                           t.RandomHorizontalFlip(p=0.5), 
                            t.ToTensor(),
-                           t.Normalize(*stats)])
+                           t.Normalize(*stats, max_pixel_value=255)])
     
     
     dataset = Source2TargetDataset(source_path=source_path, 
                                    target_path=target_path, 
                                    transform=transform)
     
-    loader = DataLoader(dataset, batch_size, shuffle=True, num_workers=2)
+    loader = DataLoader(dataset, batch_size, shuffle=True, num_workers=3)
     
     return loader
