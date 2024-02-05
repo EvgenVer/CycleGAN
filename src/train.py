@@ -72,7 +72,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         fake_score_ep.append(trg_fake_pred.mean().item())
         dis_trg_real_loss = dis_criterion(trg_real_pred, torch.ones_like(trg_real_pred))
         dis_trg_fake_loss = dis_criterion(trg_fake_pred, torch.zeros_like(trg_fake_pred))
-        dis_trg_loss = dis_trg_real_loss + dis_trg_fake_loss
+        dis_trg_loss = (dis_trg_real_loss + dis_trg_fake_loss) / 2
         
         fake_history_src = buffer_src(fake_src.detach().clone())
         fake_history_src.to(device)
@@ -80,9 +80,9 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         src_fake_pred = dis_src(fake_history_src)
         dis_src_real_loss = dis_criterion(src_real_pred, torch.ones_like(src_real_pred))
         dis_src_fake_loss = dis_criterion(src_fake_pred, torch.zeros_like(src_fake_pred))
-        dis_src_loss = dis_src_real_loss + dis_src_fake_loss
+        dis_src_loss = (dis_src_real_loss + dis_src_fake_loss) / 2
         
-        dis_loss = (dis_trg_loss + dis_src_loss) / 2
+        dis_loss = dis_trg_loss + dis_src_loss
         
         opt_dis.zero_grad()
         dis_loss.backward()

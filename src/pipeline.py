@@ -34,7 +34,7 @@ class ImgBuffer():
                 p = np.random.uniform(low=0., high=1.)
                 
                 if p > 0.5:
-                    idx = np.random.randint(low=0, high=self.buffer_size)
+                    idx = np.random.randint(low=0, high=self.buffer_size-1)
                     tmp = self.buffer[idx].clone()
                     self.buffer[idx] = img
                     return_imgs.append(tmp)
