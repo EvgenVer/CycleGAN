@@ -12,15 +12,15 @@ DATASET:
     - - 0.5
       - 0.5
       - 0.5
-  BATCH_SIZE: 8
+  BATCH_SIZE: 1
 
 TRAINING:
   NUM_EPOCHS: 70
   MIN_LR: 0.000003
-  LR_GEN: 0.0003
-  LR_DIS: 0.00003
+  LR_GEN: 0.0002
+  LR_DIS: 0.0002
   LR_RED_FACTOR: 0.9
-  START_RED_LR: 35
+  START_RED_LR: 40
   BETAS:
     - 0.5
     - 0.999
