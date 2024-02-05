@@ -122,8 +122,10 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                                     mode="triangular")
     
         
-    L1 = nn.L1Loss()
-    mse = nn.MSELoss()
+    dis_criterion = nn.MSELoss()
+    adv_criterion = nn.MSELoss()
+    cycle_criterion = nn.L1Loss()
+    idt_criterion = nn.L1Loss()
     
     loader = get_loader(source_path=src_data_path, target_path=trg_data_path, 
                         img_size=IMG_SIZE, stats=STATS, batch_size=BATCH_SIZE, set_size=dataset_size)
@@ -155,8 +157,11 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                                  loader=loader, 
                                                  opt_gen=opt_gen, 
                                                  opt_dis=opt_dis, 
-                                                 l1=L1, mse=mse,
-                                                 lambda_cycle=LAMBDA_CYCLE, 
+                                                 dis_criterion=dis_criterion, 
+                                                 adv_criterion=adv_criterion, 
+                                                 cycle_criterion=cycle_criterion,
+                                                 idt_criterion=idt_criterion,
+                                                 lambda_cycle=LAMBDA_CYCLE,
                                                  idt_coef=IDT_COEF, 
                                                  device=DEVICE, 
                                                  scheduler_dis=scheduler_dis, 
@@ -188,8 +193,9 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         
         clear_output(wait=True)
         
-        utils.show_images(trg_img)
-        utils.show_images(src_img)
+        if (epoch+1) % 5 == 0:
+            utils.show_images(trg_img)
+            utils.show_images(src_img)
         
         utils.plot_train_process(loss_gen=loss_gen, 
                                  loss_dis=loss_dis, 
