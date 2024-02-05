@@ -113,12 +113,12 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     elif scheduler == 'Cyclic':
         scheduler_gen = optim.lr_scheduler.CyclicLR(optimizer=opt_gen, 
                                                     base_lr=MIN_LR, 
-                                                    max_lr=LR, 
+                                                    max_lr=LR_GEN, 
                                                     step_size_up=5, 
                                                     mode="triangular")
         scheduler_dis = optim.lr_scheduler.CyclicLR(optimizer=opt_dis, 
                                                     base_lr=MIN_LR, 
-                                                    max_lr=LR, 
+                                                    max_lr=LR_DIS, 
                                                     step_size_up=5, 
                                                     mode="triangular")
     
