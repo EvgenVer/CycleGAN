@@ -125,9 +125,6 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     L1 = nn.L1Loss()
     mse = nn.MSELoss()
     
-    gen_scal = torch.cuda.amp.GradScaler()
-    dis_scal = torch.cuda.amp.GradScaler()
-    
     loader = get_loader(source_path=src_data_path, target_path=trg_data_path, 
                         img_size=IMG_SIZE, stats=STATS, batch_size=BATCH_SIZE, set_size=dataset_size)
     
@@ -158,9 +155,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                                  loader=loader, 
                                                  opt_gen=opt_gen, 
                                                  opt_dis=opt_dis, 
-                                                 l1=L1, mse=mse, 
-                                                 dis_scal=dis_scal, 
-                                                 gen_scal=gen_scal, 
+                                                 l1=L1, mse=mse,
                                                  lambda_cycle=LAMBDA_CYCLE, 
                                                  idt_coef=IDT_COEF, 
                                                  device=DEVICE, 
