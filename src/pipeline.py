@@ -175,16 +175,11 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                   opt_dis=opt_dis, opt_gen=opt_gen, 
                                   chekpoints_path=save_path, 
                                   epoch=EPOCH + epoch + 1)
-            
-        trg_img = utils.img_grid(img_tensors=val_trg_img, stats=STATS)
-        src_img = utils.img_grid(img_tensors=val_src_img, stats=STATS)
         
         writer.add_scalar('Loss/Discriminator', loss_dis_ep, epoch)
         writer.add_scalar('Loss/Generator', loss_gen_ep, epoch)
         writer.add_scalar('Real_score', real_score_ep, epoch)
         writer.add_scalar('Fake_score', fake_score_ep, epoch)
-        writer.add_image('Target_image', trg_img, epoch)
-        writer.add_image('Source_image', src_img, epoch)
         
         loss_dis.append(loss_dis_ep)
         loss_gen.append(loss_gen_ep)
@@ -194,6 +189,10 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         clear_output(wait=True)
         
         if (epoch+1) % 5 == 0:
+            trg_img = utils.img_grid(img_tensors=val_trg_img, stats=STATS)
+            src_img = utils.img_grid(img_tensors=val_src_img, stats=STATS)
+            writer.add_image('Target_image', trg_img, epoch)
+            writer.add_image('Source_image', src_img, epoch)
             utils.show_images(trg_img)
             utils.show_images(src_img)
         
