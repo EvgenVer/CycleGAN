@@ -58,13 +58,8 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         
         
         # Train discriminators
-        with torch.cuda.amp.autocast():
-            if np.random.random() > 0.5:
-                trg_idx = np.random.randint(len(buffer_trg))
-                fake_history_trg = buffer_trg.pop(trg_idx)
-                buffer_trg.append(fake_trg.detach().clone())
-            else:
-                fake_history_trg = fake_trg.detach().clone()
+        with torch.cuda.amp.autocast():  
+            fake_history_trg = buffer_trg(fake_trg.detach().clone())
             fake_history_trg.to(device)
             trg_real_pred = dis_trg(trg)
             trg_fake_pred = dis_trg(fake_history_trg)
@@ -74,12 +69,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             dis_trg_fake_loss = mse(trg_fake_pred, torch.zeros_like(trg_fake_pred))
             dis_trg_loss = dis_trg_real_loss + dis_trg_fake_loss
             
-            if np.random.random() > 0.5:
-                src_idx = np.random.randint(len(buffer_src))
-                fake_history_src = buffer_src.pop(src_idx)
-                buffer_src.append(fake_src.detach().clone())
-            else:
-                fake_history_src = fake_src.detach().clone()
+            fake_history_src = buffer_src(fake_src.detach().clone())
             fake_history_src.to(device)
             src_real_pred = dis_src(src)
             src_fake_pred = dis_src(fake_history_src)
@@ -107,4 +97,4 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         val_src_img = gen_src(val_trg).cpu().detach()
     
     return np.mean(loss_dis_ep), np.mean(loss_gen_ep), np.mean(real_score_ep), \
-           np.mean(fake_score_ep), val_trg_img, val_src_img, buffer_trg, buffer_src
+           np.mean(fake_score_ep), val_trg_img, val_src_img

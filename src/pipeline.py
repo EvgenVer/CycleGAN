@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,6 +10,39 @@ from dataloader import get_loader
 from model import Generator, Discriminator
 from train import train_epoch
 import utils
+
+class ImgBuffer():
+    def __init__(self, buffer_size=50):
+        self.buffer_size = buffer_size
+        if self.buffer_size > 0:
+            self.curent_cup = 0
+            self.buffer = []
+            
+    def __call__(self, imgs):
+        if self.buffer_size == 0:
+            return imgs
+        
+        return_imgs = []
+        for img in imgs:
+            img = img.unsqueeze(dim=0)
+            
+            if self.curent_cup < self.buffer_size:
+                self.curent_cup += 1
+                self.buffer.append(img)
+                return_imgs.append(img)
+            else:
+                p = np.random.uniform(low=0., high=1.)
+                
+                if p > 0.5:
+                    idx = np.random.randint(low=0, high=self.buffer_size)
+                    tmp = self.buffer[idx].clone()
+                    self.buffer[idx] = img
+                    return_imgs.append(tmp)
+                else:
+                    return_imgs.append(img)
+                    
+        return torch.cat(return_imgs, dim=0)
+                
 
 def init_weights(m):
     classname = m.__class__.__name__
@@ -106,17 +140,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         
     writer = SummaryWriter(comment=experement_name)
     
-    buffer_trg = []
-    buffer_src = []
-    
-    with torch.no_grad():
-        for _ in range(buffer_size):
-            src, trg = next(iter(loader))
-            src, trg = src.to(device), trg.to(device)
-            fake_trg = gen_trg(src)
-            fake_src = gen_src(trg)
-            buffer_trg.append(fake_trg.detach())
-            buffer_src.append(fake_src.detach())
+    buffer_trg = ImgBuffer(buffer_size=buffer_size)
+    buffer_src = ImgBuffer(buffer_size=buffer_size)
     
     loss_dis = []
     loss_gen = []
@@ -126,8 +151,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     for epoch in tqdm(range(NUM_EPOCHS), leave=True):
         (loss_dis_ep, loss_gen_ep,
          real_score_ep, fake_score_ep, 
-         val_trg_img, val_src_img, 
-         buffer_trg, buffer_src) = train_epoch(gen_trg=gen_trg, 
+         val_trg_img, val_src_img) = train_epoch(gen_trg=gen_trg, 
                                                  gen_src=gen_src, 
                                                  dis_trg=dis_trg, 
                                                  dis_src=dis_src, 
