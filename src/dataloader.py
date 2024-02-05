@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as t
 
 class Source2TargetDataset(Dataset):
-    def __init__(self, source_path, target_path, transform=None):
+    def __init__(self, source_path, target_path, transform=None, set_size=None):
         self.source_path = source_path
         self.target_path = target_path
         self.transform = transform
@@ -14,9 +14,11 @@ class Source2TargetDataset(Dataset):
         
         for p in self.source_path:
             self.src_img.extend([f'{p}/{img}' for img in os.listdir(p)])
+            self.src_img = self.src_img[:set_size]
             
         for p in self.target_path:
             self.trg_img.extend([f'{p}/{img}' for img in os.listdir(p)])
+            self.trg_img = self.trg_img[:set_size]
         
         self.length_dataset = max(len(self.src_img), len(self.trg_img))
         self.src_len, self.trg_len = len(self.src_img), len(self.trg_img)
@@ -38,17 +40,18 @@ class Source2TargetDataset(Dataset):
             
         return src_img, trg_img
 
-def get_loader(source_path, target_path, img_size, stats, batch_size):
+def get_loader(source_path, target_path, img_size, stats, batch_size, set_size=None):
     transform = t.Compose([t.Resize(img_size), 
                            t.CenterCrop(img_size),
-                           t.RandomHorizontalFlip(p=0.5), 
+                        #    t.RandomHorizontalFlip(p=0.5), 
                            t.ToTensor(),
                            t.Normalize(*stats)])
     
     
     dataset = Source2TargetDataset(source_path=source_path, 
                                    target_path=target_path, 
-                                   transform=transform)
+                                   transform=transform, 
+                                   set_size=set_size)
     
     loader = DataLoader(dataset, batch_size, shuffle=True, num_workers=3)
     

@@ -10,11 +10,18 @@ from model import Generator, Discriminator
 from train import train_epoch
 import utils
 
+def init_weights(m):
+    classname = m.__class__.__name__
+    if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('InstanceNorm2d') != -1):
+        nn.init.normal_(m.weight.data, 0.0, 0.02)
+        if m.bias is not None:
+            nn.init.constant_(m.bias, 0.0)
+
 def train_pipeline(src_data_path, trg_data_path, experement_name, 
                    config_path='./config.yaml', device='cpu', scheduler='Linear', 
                    warm_lr=False, num_epoch=None, lr=None, img_size=None, 
                    batch_size=None, save_path=None, load_path=None, save_period=2,
-                   buffer_size=5):
+                   buffer_size=50, dataset_size=None):
     
     config = utils.load_config(config_path=config_path)
     
@@ -31,6 +38,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     START_RED_LR = config['TRAINING']['START_RED_LR']
     BETAS = config['TRAINING']['BETAS']
     LAMBDA_CYCLE = config['TRAINING']['LAMBDA_CYCLE']
+    IDT_COEF = config['TRAINING']['IDT_COEF']
     SAVE_MODEL = True if save_path else False
     LOAD_CHECKPOINT = True if load_path else False
     DEVICE = device
@@ -46,6 +54,11 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                             num_hid_channels=NUM_HID_CHANNELS).to(DEVICE)
     dis_src = Discriminator(img_ch=IMG_CHANNELS, 
                             num_hid_channels=NUM_HID_CHANNELS).to(DEVICE)
+    
+    gen_trg.apply(init_weights)
+    gen_src.apply(init_weights)
+    dis_trg.apply(init_weights)
+    dis_src.apply(init_weights)
     
     opt_gen = optim.Adam(params=list(gen_trg.parameters()) + list(gen_src.parameters()), 
                          lr=LR, betas=BETAS)
@@ -82,7 +95,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     dis_scal = torch.cuda.amp.GradScaler()
     
     loader = get_loader(source_path=src_data_path, target_path=trg_data_path, 
-                        img_size=IMG_SIZE, stats=STATS, batch_size=BATCH_SIZE)
+                        img_size=IMG_SIZE, stats=STATS, batch_size=BATCH_SIZE, set_size=dataset_size)
     
     if LOAD_CHECKPOINT:
         EPOCH += utils.load_checkpoint(chekpoints_path=load_path, device=DEVICE, 
@@ -125,6 +138,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                                  dis_scal=dis_scal, 
                                                  gen_scal=gen_scal, 
                                                  lambda_cycle=LAMBDA_CYCLE, 
+                                                 idt_coef=IDT_COEF, 
                                                  device=DEVICE, 
                                                  scheduler_dis=scheduler_dis, 
                                                  scheduler_gen=scheduler_gen, 

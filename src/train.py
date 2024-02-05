@@ -4,7 +4,7 @@ from tqdm.auto import tqdm
 
 def train_epoch(gen_trg, gen_src, dis_trg, dis_src, 
                 loader, opt_gen, opt_dis, l1, mse, 
-                dis_scal, gen_scal, lambda_cycle, device,
+                dis_scal, gen_scal, lambda_cycle, idt_coef, device,
                 scheduler_dis, scheduler_gen, buffer_trg, buffer_src):
     loss_dis_ep = []
     loss_gen_ep = []
@@ -19,9 +19,46 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         src = src.to(device)
         trg = trg.to(device)
         
+        # Train generators
+        with torch.cuda.amp.autocast():
+            #fake_img
+            fake_trg = gen_trg(src)
+            fake_src = gen_src(trg)
+            #recon_img
+            cycle_trg = gen_trg(fake_src)
+            cycle_src = gen_src(fake_trg)
+            #ident_img
+            idt_trg = gen_trg(trg)
+            idt_src = gen_src(src)
+            
+            #Adversarial loss
+            trg_fake_pred = dis_trg(fake_trg)
+            src_fake_pred = dis_src(fake_src)
+            adv_trg_loss = mse(trg_fake_pred, torch.ones_like(trg_fake_pred))
+            adv_src_loss = mse(src_fake_pred, torch.ones_like(src_fake_pred))
+            total_adv_loss = adv_trg_loss + adv_src_loss
+            
+            #Cycle loss
+            cycle_trg_loss = l1(cycle_trg, trg)
+            cycle_src_loss = l1(cycle_src, src)
+            total_cycle_loss = cycle_trg_loss + cycle_src_loss
+            
+            #Identity loss
+            idt_trg_loss = l1(idt_trg, trg)
+            idt_src_loss = l1(idt_src, src)
+            total_idt_loss = idt_trg_loss + idt_src_loss
+            
+            gen_loss = total_adv_loss + lambda_cycle * total_cycle_loss + lambda_cycle * idt_coef * total_idt_loss
+            
+        opt_gen.zero_grad()
+        gen_scal.scale(gen_loss).backward()
+        gen_scal.step(opt_gen)
+        gen_scal.update()
+        loss_gen_ep.append(gen_loss.item())
+        
+        
         # Train discriminators
         with torch.cuda.amp.autocast():
-            fake_trg = gen_trg(src)
             if np.random.random() > 0.5:
                 trg_idx = np.random.randint(len(buffer_trg))
                 fake_history_trg = buffer_trg.pop(trg_idx)
@@ -37,7 +74,6 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
             dis_trg_fake_loss = mse(trg_fake_pred, torch.zeros_like(trg_fake_pred))
             dis_trg_loss = dis_trg_real_loss + dis_trg_fake_loss
             
-            fake_src = gen_src(trg)
             if np.random.random() > 0.5:
                 src_idx = np.random.randint(len(buffer_src))
                 fake_history_src = buffer_src.pop(src_idx)
@@ -58,28 +94,6 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         dis_scal.step(opt_dis)
         dis_scal.update()
         loss_dis_ep.append(dis_loss.item())
-        
-        # Train generators
-        with torch.cuda.amp.autocast():
-            trg_fake_pred = dis_trg(fake_trg)
-            src_fake_pred = dis_src(fake_src)
-            gen_trg_loss = mse(trg_fake_pred, torch.ones_like(trg_fake_pred))
-            gen_src_loss = mse(src_fake_pred, torch.ones_like(src_fake_pred))
-            gen_adv_loss = (gen_trg_loss + gen_src_loss) / 2
-            
-            cycle_trg = gen_trg(fake_src)
-            cycle_src = gen_src(fake_trg)
-            cycle_trg_loss = l1(cycle_trg, trg)
-            cycle_src_loss = l1(cycle_src, src)
-            cycle_loss = (cycle_trg_loss + cycle_src_loss) / 2
-            
-            gen_loss = gen_adv_loss + lambda_cycle * cycle_loss
-            
-        opt_gen.zero_grad()
-        gen_scal.scale(gen_loss).backward()
-        gen_scal.step(opt_gen)
-        gen_scal.update()
-        loss_gen_ep.append(gen_loss.item())
         
     scheduler_dis.step()
     scheduler_gen.step()

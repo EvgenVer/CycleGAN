@@ -24,3 +24,4 @@ TRAINING:
     - 0.5
     - 0.999
   LAMBDA_CYCLE: 10
+  IDT_COEF: 0.5
