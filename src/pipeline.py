@@ -189,7 +189,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         
         clear_output(wait=True)
         
-        if (epoch+1) % 5 == 0:
+        if (epoch+1) % save_period == 0:
             trg_img = utils.img_grid(img_tensors=val_trg_img, stats=STATS)
             src_img = utils.img_grid(img_tensors=val_src_img, stats=STATS)
             writer.add_image('Target_image', trg_img, epoch)
