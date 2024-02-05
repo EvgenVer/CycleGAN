@@ -67,7 +67,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     STATS = config['DATASET']['STATS']
     NUM_EPOCHS = num_epoch if num_epoch else config['TRAINING']['NUM_EPOCHS']
     MIN_LR = config['TRAINING']['MIN_LR']
-    LR = lr if lr else config['TRAINING']['LR']
+    LR_GEN = lr[0] if lr else config['TRAINING']['LR_GEN']
+    LR_DIS = lr[1] if lr else config['TRAINING']['LR_DIS']
     LR_RED_FACTOR = config['TRAINING']['LR_RED_FACTOR']
     START_RED_LR = config['TRAINING']['START_RED_LR']
     BETAS = config['TRAINING']['BETAS']
@@ -95,9 +96,9 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
     dis_src.apply(init_weights)
     
     opt_gen = optim.Adam(params=list(gen_trg.parameters()) + list(gen_src.parameters()), 
-                         lr=LR, betas=BETAS)
+                         lr=LR_GEN, betas=BETAS)
     opt_dis = optim.Adam(params=list(dis_trg.parameters()) + list(dis_src.parameters()), 
-                         lr=LR, betas=BETAS)
+                         lr=LR_DIS, betas=BETAS)
     
     if scheduler == 'Linear':
         def lr_lambda(epoch):
