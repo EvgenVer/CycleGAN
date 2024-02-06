@@ -12,8 +12,9 @@ from train import train_epoch
 import utils
 
 class ImgBuffer():
-    def __init__(self, buffer_size=50):
+    def __init__(self, buffer_size=50, buffer_treshold=0.5):
         self.buffer_size = buffer_size
+        self.buffer_treshold = buffer_treshold
         if self.buffer_size > 0:
             self.curent_cup = 0
             self.buffer = []
@@ -33,7 +34,7 @@ class ImgBuffer():
             else:
                 p = np.random.uniform(low=0., high=1.)
                 
-                if p > 0.5:
+                if p > self.buffer_treshold:
                     idx = np.random.randint(low=0, high=self.buffer_size-1)
                     tmp = self.buffer[idx].clone()
                     self.buffer[idx] = img
@@ -55,7 +56,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                    config_path='./config.yaml', device='cpu', scheduler='Linear', 
                    warm_lr=False, num_epoch=None, lr=None, img_size=None, 
                    batch_size=None, save_path=None, load_path=None, save_period=2,
-                   buffer_size=50, dataset_size=None):
+                   buffer_size=50, dataset_size=None, buffer_treshold=0.5):
     
     config = utils.load_config(config_path=config_path)
     
@@ -140,8 +141,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         
     writer = SummaryWriter(comment=experement_name)
     
-    buffer_trg = ImgBuffer(buffer_size=buffer_size)
-    buffer_src = ImgBuffer(buffer_size=buffer_size)
+    buffer_trg = ImgBuffer(buffer_size=buffer_size, buffer_treshold=buffer_treshold)
+    buffer_src = ImgBuffer(buffer_size=buffer_size, buffer_treshold=buffer_treshold)
     
     loss_dis = []
     loss_gen = []
