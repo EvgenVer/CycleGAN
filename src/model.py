@@ -93,7 +93,7 @@ class Discriminator(nn.Module):
             ConvBlockDis(num_hid_channels*2, num_hid_channels*4, kernel_size=4, stride=2, padding=1),
             ConvBlockDis(num_hid_channels*4, num_hid_channels*8, kernel_size=4, stride=1, padding=1),
             nn.Conv2d(num_hid_channels*8, 1, kernel_size=4, stride=1, padding=1, padding_mode="reflect", bias=False),
-            # nn.Sigmoid()
+            nn.Sigmoid()
         )
         
     def forward(self, x):
