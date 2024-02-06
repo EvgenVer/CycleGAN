@@ -7,7 +7,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
                 adv_criterion, cycle_criterion, idt_criterion, 
                 lambda_cycle, idt_coef, device, 
                 scheduler_dis, scheduler_gen, 
-                buffer_trg, buffer_src):
+                buffer_trg, buffer_src, dis_loss_treshold=0):
     
     gen_trg.train()
     gen_src.train()
@@ -83,11 +83,12 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         dis_src_loss = (dis_src_real_loss + dis_src_fake_loss) / 2
         
         dis_loss = dis_trg_loss + dis_src_loss
-        
-        opt_dis.zero_grad()
-        dis_loss.backward()
-        opt_dis.step()
         loss_dis_ep.append(dis_loss.item())
+        
+        if dis_loss > dis_loss_treshold:
+            opt_dis.zero_grad()
+            dis_loss.backward()
+            opt_dis.step()
         
     scheduler_dis.step()
     scheduler_gen.step()
