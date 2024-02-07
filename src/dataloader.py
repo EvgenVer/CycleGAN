@@ -32,8 +32,8 @@ class Source2TargetDataset(Dataset):
         src_path = self.src_img[index % self.src_len]
         trg_path = self.trg_img[index % self.trg_len]
         
-        src_img = read_image(src_path) / 255
-        trg_img = read_image(trg_path) / 255
+        src_img = read_image(src_path)
+        trg_img = read_image(trg_path)
         
         if self.transform:
             src_img = self.transform(src_img)
@@ -47,7 +47,7 @@ def get_loader(source_path, target_path, img_size, stats, batch_size, set_size=N
     if stage == 'train':
         transform = t.Compose([t.Resize((img_size+30, img_size+30), antialias=True), 
                                t.RandomCrop((img_size, img_size)), 
-                               t.RandomHorizontalFlip(p=0.5), 
+                            #    t.RandomHorizontalFlip(p=0.5), 
                                t.Normalize(*stats)])
     elif stage == 'test':
         transform = t.Compose([t.Resize((img_size, img_size), antialias=True), 
