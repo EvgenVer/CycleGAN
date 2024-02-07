@@ -3,7 +3,7 @@ import os
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import torchvision.transforms as t
-from torchvision.io import read_image
+# from torchvision.io import read_image
 
 class Source2TargetDataset(Dataset):
     def __init__(self, source_path, target_path, transform=None, set_size=None):
@@ -32,8 +32,8 @@ class Source2TargetDataset(Dataset):
         src_path = self.src_img[index % self.src_len]
         trg_path = self.trg_img[index % self.trg_len]
         
-        src_img = read_image(src_path)
-        trg_img = read_image(trg_path)
+        src_img = Image.open(src_path)
+        trg_img = Image.open(trg_path)
         
         if self.transform:
             src_img = self.transform(src_img)
@@ -46,12 +46,14 @@ def get_loader(source_path, target_path, img_size, stats, batch_size, set_size=N
     
     if stage == 'train':
         transform = t.Compose([t.Resize((img_size+30, img_size+30), antialias=True), 
-                               t.RandomCrop((img_size, img_size)), 
+                               t.RandomCrop((img_size, img_size)),
+                               t.ToTensor(), 
                             #    t.RandomHorizontalFlip(p=0.5), 
                                t.Normalize(*stats)])
     elif stage == 'test':
         transform = t.Compose([t.Resize((img_size, img_size), antialias=True), 
-                               t.CenterCrop((img_size, img_size)),  
+                               t.CenterCrop((img_size, img_size)),
+                               t.ToTensor(),  
                                t.Normalize(*stats)])
     
     
