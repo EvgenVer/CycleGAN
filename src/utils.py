@@ -1,6 +1,6 @@
 import yaml
 import torch
-from torchvision.utils import make_grid
+# from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 
 def load_config(config_path):
@@ -11,8 +11,8 @@ def load_config(config_path):
 def denorm(img_tensors, stats):
     return img_tensors * stats[1][0] + stats[0][0]
 
-def img_grid(img_tensors, stats, nmax=16, nrow=8):
-    return make_grid(denorm(img_tensors[:nmax], stats), nrow=nrow)
+# def img_grid(img_tensors, nmax=16, nrow=8):
+#     return make_grid(img_tensors[:nmax], nrow=nrow, normalize=True)
 
 def show_images(img_tensors):
     fig, ax = plt.subplots(figsize=(8, 8))

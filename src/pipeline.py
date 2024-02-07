@@ -1,4 +1,5 @@
 import numpy as np
+from torchvision.utils import make_grid
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -195,8 +196,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         clear_output(wait=True)
         
         if (epoch+1) % save_period == 0:
-            trg_img = utils.img_grid(img_tensors=val_trg_img, stats=STATS)
-            src_img = utils.img_grid(img_tensors=val_src_img, stats=STATS)
+            trg_img = make_grid(val_trg_img, nrow=8, normalize=True)
+            src_img = make_grid(val_src_img, nrow=8, normalize=True)
             writer.add_image('Target_image', trg_img, epoch)
             writer.add_image('Source_image', src_img, epoch)
             utils.show_images(trg_img)
