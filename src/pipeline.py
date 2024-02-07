@@ -58,7 +58,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                    warm_lr=False, num_epoch=None, lr=None, img_size=None, 
                    batch_size=None, save_path=None, load_path=None, save_period=2,
                    buffer_size=50, dataset_size=None, buffer_treshold=0.5, 
-                   dis_loss_treshold=0.5, dis_loss_beta=0.98):
+                   dis_loss_treshold=0.5, dis_loss_beta=0.98, logging=False):
     
     config = utils.load_config(config_path=config_path)
     
@@ -141,7 +141,8 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                        opt_dis=opt_dis, opt_gen=opt_gen, 
                                        lr_opt_gen=warm_lr, lr_opt_dis=warm_lr)
         
-    writer = SummaryWriter(comment=experement_name)
+    if logging:
+        writer = SummaryWriter(comment=experement_name)
     
     buffer_trg = ImgBuffer(buffer_size=buffer_size, buffer_treshold=buffer_treshold)
     buffer_src = ImgBuffer(buffer_size=buffer_size, buffer_treshold=buffer_treshold)
@@ -183,10 +184,11 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                   chekpoints_path=save_path, 
                                   epoch=EPOCH + epoch + 1)
         
-        writer.add_scalar('Loss/Discriminator', loss_dis_ep, epoch)
-        writer.add_scalar('Loss/Generator', loss_gen_ep, epoch)
-        writer.add_scalar('Real_score', real_score_ep, epoch)
-        writer.add_scalar('Fake_score', fake_score_ep, epoch)
+        if logging:
+            writer.add_scalar('Loss/Discriminator', loss_dis_ep, epoch)
+            writer.add_scalar('Loss/Generator', loss_gen_ep, epoch)
+            writer.add_scalar('Real_score', real_score_ep, epoch)
+            writer.add_scalar('Fake_score', fake_score_ep, epoch)
         
         loss_dis.append(loss_dis_ep)
         loss_gen.append(loss_gen_ep)
@@ -198,8 +200,9 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         if (epoch+1) % save_period == 0:
             trg_img = make_grid(val_trg_img, nrow=8, normalize=True)
             src_img = make_grid(val_src_img, nrow=8, normalize=True)
-            writer.add_image('Target_image', trg_img, epoch)
-            writer.add_image('Source_image', src_img, epoch)
+            if logging:
+                writer.add_image('Target_image', trg_img, epoch)
+                writer.add_image('Source_image', src_img, epoch)
             utils.show_images(trg_img)
             utils.show_images(src_img)
         
@@ -214,5 +217,6 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
         print(f'Real score: {real_score_ep}')
         print(f'Fake score: {fake_score_ep}')
     
-    writer.flush()
-    writer.close()
+    if logging:
+        writer.flush()
+        writer.close()

@@ -45,10 +45,10 @@ class Source2TargetDataset(Dataset):
 def get_loader(source_path, target_path, img_size, stats, batch_size, set_size=None, stage='train'):
     
     if stage == 'train':
-        transform = t.Compose([t.Resize((img_size+30, img_size+30), antialias=True), 
-                               t.RandomCrop((img_size, img_size)),
+        transform = t.Compose([t.Resize((img_size, img_size), antialias=True), 
+                               t.CenterCrop((img_size, img_size)),
                                t.ToTensor(), 
-                            #    t.RandomHorizontalFlip(p=0.5), 
+                               t.RandomHorizontalFlip(p=0.5), 
                                t.Normalize(*stats)])
     elif stage == 'test':
         transform = t.Compose([t.Resize((img_size, img_size), antialias=True), 
