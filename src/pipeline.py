@@ -57,7 +57,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                    warm_lr=False, num_epoch=None, lr=None, img_size=None, 
                    batch_size=None, save_path=None, load_path=None, save_period=2,
                    buffer_size=50, dataset_size=None, buffer_treshold=0.5, 
-                   dis_loss_treshold=0.5, dis_loss_detta=0.98):
+                   dis_loss_treshold=0.5, dis_loss_beta=0.98):
     
     config = utils.load_config(config_path=config_path)
     
@@ -172,7 +172,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                                                  buffer_trg=buffer_trg, 
                                                  buffer_src=buffer_src, 
                                                  dis_loss_treshold=dis_loss_treshold,
-                                                 dis_loss_beta=dis_loss_detta,
+                                                 dis_loss_beta=dis_loss_beta,
                                                  epoch=epoch)
         
         if SAVE_MODEL and (((epoch+1) % save_period == 0) or (epoch+1) == NUM_EPOCHS):

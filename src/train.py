@@ -86,7 +86,7 @@ def train_epoch(gen_trg, gen_src, dis_trg, dis_src,
         dis_loss = dis_trg_loss + dis_src_loss
         loss_dis_ep.append(dis_loss.item())
         
-        if dis_loss > dis_loss_treshold * dis_loss_beta ** epoch:
+        if dis_loss > (dis_loss_treshold * (dis_loss_beta ** epoch)):
             opt_dis.zero_grad()
             dis_loss.backward()
             opt_dis.step()
