@@ -33,7 +33,7 @@ class ImgBuffer():
                 self.buffer.append(img)
                 return_imgs.append(img)
             else:
-                p = np.random.uniform(low=0., high=1.)
+                p = np.random.random_sample()
                 
                 if p > self.buffer_treshold:
                     idx = np.random.randint(low=0, high=self.buffer_size-1)
@@ -48,7 +48,7 @@ class ImgBuffer():
 
 def init_weights(m):
     classname = m.__class__.__name__
-    if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('InstanceNorm2d') != -1):
+    if hasattr(m, 'weight') and classname.find('Conv') != -1:
         nn.init.normal_(m.weight.data, 0.0, 0.02)
         if m.bias is not None:
             nn.init.constant_(m.bias, 0.0)
@@ -58,7 +58,7 @@ def train_pipeline(src_data_path, trg_data_path, experement_name,
                    warm_lr=False, num_epoch=None, lr=None, img_size=None, 
                    batch_size=None, save_path=None, load_path=None, save_period=2,
                    buffer_size=50, dataset_size=None, buffer_treshold=0.5, 
-                   dis_loss_treshold=0.5, dis_loss_beta=0.98, logging=False):
+                   dis_loss_treshold=0.5, dis_loss_beta=0.98, logging=True):
     
     config = utils.load_config(config_path=config_path)
     

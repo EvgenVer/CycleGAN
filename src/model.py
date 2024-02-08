@@ -11,14 +11,14 @@ class ConvBlockGen(nn.Module):
         
         if downsampling:
             self.conv = nn.Sequential(
-                nn.Conv2d(input_ch, output_ch, padding_mode="reflect", bias=False, **kwargs), 
-                nn.InstanceNorm2d(output_ch, affine=True),
+                nn.Conv2d(input_ch, output_ch, padding_mode="reflect", **kwargs), 
+                nn.InstanceNorm2d(output_ch),
                 nn.ReLU(inplace=True) if activation else nn.Identity()
             )
         else:
             self.conv = nn.Sequential(
-                nn.ConvTranspose2d(input_ch, output_ch, bias=False, **kwargs),
-                nn.InstanceNorm2d(output_ch, affine=True),
+                nn.ConvTranspose2d(input_ch, output_ch, **kwargs),
+                nn.InstanceNorm2d(output_ch),
                 nn.ReLU(inplace=True) if activation else nn.Identity()
             )
         
@@ -40,7 +40,7 @@ class ResBlock(nn.Module):
     
 
 class Generator(nn.Module):
-    def __init__(self, img_ch=3, num_hid_channels=64, num_residuals=9):
+    def __init__(self, img_ch=3, num_hid_channels=64, num_residuals=6):
         super(Generator, self).__init__()
         
         self.encoder = nn.Sequential(
@@ -74,8 +74,8 @@ class ConvBlockDis(nn.Module):
         super(ConvBlockDis, self).__init__()
         
         self.conv = nn.Sequential(
-            nn.Conv2d(input_ch, output_ch, padding_mode="reflect", bias=False, **kwargs), 
-            nn.InstanceNorm2d(output_ch, affine=True), 
+            nn.Conv2d(input_ch, output_ch, padding_mode="reflect", **kwargs), 
+            nn.InstanceNorm2d(output_ch), 
             nn.LeakyReLU(0.2, inplace=True)
         )
         
@@ -87,12 +87,12 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         
         self.result = nn.Sequential(
-            nn.Conv2d(img_ch, num_hid_channels, kernel_size=4, stride=2, padding=1, padding_mode="reflect", bias=False),
+            nn.Conv2d(img_ch, num_hid_channels, kernel_size=4, stride=2, padding=1, padding_mode="reflect"),
             nn.LeakyReLU(0.2, inplace=True),
             ConvBlockDis(num_hid_channels, num_hid_channels*2, kernel_size=4, stride=2, padding=1),
             ConvBlockDis(num_hid_channels*2, num_hid_channels*4, kernel_size=4, stride=2, padding=1),
             ConvBlockDis(num_hid_channels*4, num_hid_channels*8, kernel_size=4, stride=1, padding=1),
-            nn.Conv2d(num_hid_channels*8, 1, kernel_size=4, stride=1, padding=1, padding_mode="reflect", bias=False),
+            nn.Conv2d(num_hid_channels*8, 1, kernel_size=4, stride=1, padding=1, padding_mode="reflect"),
             nn.Sigmoid()
         )
         
